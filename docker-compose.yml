@@ -1,0 +1,48 @@
+services:
+  redis:
+    image: redis:alpine
+    restart: always
+  db:
+    image: postgres
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+    env_file:
+      - .env
+  web:
+    build: .
+    command: >
+      sh -c "python from_csv_to_json.py && python manage.py makemigrations && python manage.py migrate && python manage.py loaddata mydata.json && gunicorn freight.wsgi:application --bind 0.0.0.0:8000"
+    volumes:
+      - .:/code
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      - db
+  worker:
+    restart: always
+    build: 
+      context: .
+    volumes:
+      - .:/code
+    command: celery -A freight worker --loglevel=info
+    depends_on:
+      - redis
+      - web
+      - db
+    env_file:
+      - .env
+  beat:
+    restart: always
+    build: 
+      context: .
+    volumes:
+      - .:/code
+    command: celery -A freight beat --loglevel=info
+    depends_on:
+      - redis
+      - web
+      - db
+    env_file:
+      - .env

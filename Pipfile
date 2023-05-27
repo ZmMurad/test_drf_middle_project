@@ -4,6 +4,16 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
+django = "*"
+psycopg2 = "*"
+djangorestframework = "*"
+markdown = "*"
+django-filter = "*"
+geopy = "*"
+requests = "*"
+gunicorn = "*"
+celery = "*"
+redis = "*"
 
 [dev-packages]
 
